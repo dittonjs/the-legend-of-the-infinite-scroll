@@ -1,0 +1,31 @@
+.paragraph {
+  text-align: left;
+  padding: 24px 28px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  scroll-margin-top: 24px;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s,
+    background-color 0.3s;
+
+  &:hover {
+    box-shadow: var(--shadow);
+  }
+
+  /* Highlights the paragraph whose id matches the URL hash */
+  &:target {
+    border-color: var(--accent-border);
+    background: var(--accent-bg);
+  }
+
+  p {
+    color: var(--text-h);
+    line-height: 160%;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 20px;
+  }
+}
