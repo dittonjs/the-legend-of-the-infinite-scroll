@@ -7,6 +7,9 @@ import paragraphs from './paragraphs.js'
 // How many paragraphs to keep rendered past the top and bottom edges of the screen.
 const BUFFER = 10
 
+// How long scrolling has to stop, in milliseconds, before the rendered paragraphs are updated.
+const DEBOUNCE_MS = 150
+
 // Maps a rendered paragraph's id back to its position in the full list.
 const indexById = new Map(paragraphs.map((paragraph, index) => [paragraph.id, index]))
 
@@ -52,11 +55,19 @@ function App() {
       window.scrollBy(0, -offset)
     }
 
-    window.addEventListener('scroll', updateRange, { passive: true })
-    window.addEventListener('resize', updateRange)
+    // Wait until scrolling has stopped for DEBOUNCE_MS before updating.
+    let timeoutId
+    function debouncedUpdateRange() {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(updateRange, DEBOUNCE_MS)
+    }
+
+    window.addEventListener('scroll', debouncedUpdateRange, { passive: true })
+    window.addEventListener('resize', debouncedUpdateRange)
     return () => {
-      window.removeEventListener('scroll', updateRange)
-      window.removeEventListener('resize', updateRange)
+      clearTimeout(timeoutId)
+      window.removeEventListener('scroll', debouncedUpdateRange)
+      window.removeEventListener('resize', debouncedUpdateRange)
     }
   }, [])
 
