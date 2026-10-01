@@ -4,7 +4,6 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg);
-  scroll-margin-top: 24px;
   transition:
     border-color 0.3s,
     box-shadow 0.3s,

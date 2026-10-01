@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import './App.css'
 import Paragraph from './Paragraph.jsx'
 import paragraphs from './paragraphs.js'
@@ -15,8 +16,10 @@ function App() {
 
   useEffect(() => {
     function updateRange() {
+      const rendered = [...listRef.current.children]
+
       // The rendered paragraphs that are at least partly on screen.
-      const visible = [...listRef.current.children].filter((element) => {
+      const visible = rendered.filter((element) => {
         const rect = element.getBoundingClientRect()
         return rect.bottom > 0 && rect.top < window.innerHeight
       })
@@ -27,10 +30,28 @@ function App() {
       const start = Math.max(0, firstVisible - BUFFER)
       const end = Math.min(paragraphs.length, lastVisible + 1 + BUFFER)
 
-      setRange((prev) => (prev.start === start && prev.end === end ? prev : { start, end }))
+      // Nothing to add or remove if that's already what's rendered.
+      const renderedStart = indexById.get(rendered[0].id)
+      const renderedEnd = indexById.get(rendered[rendered.length - 1].id) + 1
+      if (start === renderedStart && end === renderedEnd) return
+
+      // Remember the first visible paragraph and how far its top is from the top of the
+      // screen (negative once it has scrolled past the top).
+      const anchor = visible[0]
+      const offset = anchor.getBoundingClientRect().top
+
+      // Remove and add paragraphs now, instead of on React's next render.
+      flushSync(() => setRange({ start, end }))
+
+      // Put that paragraph's id in the URL and jump to it, which lines its top up with
+      // the top of the screen...
+      window.history.replaceState(null, '', `#${anchor.id}`)
+      anchor.scrollIntoView()
+
+      // ...then scroll by the saved offset so we're looking at exactly the same spot.
+      window.scrollBy(0, -offset)
     }
 
-    updateRange()
     window.addEventListener('scroll', updateRange, { passive: true })
     window.addEventListener('resize', updateRange)
     return () => {
